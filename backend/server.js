@@ -20,7 +20,15 @@ connectDB();
 
 const app = express();   // ✅ APP MUST BE CREATED BEFORE USE
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", // local development
+      "https://your-vercel-app.vercel.app" // production frontend
+    ],
+    credentials: true
+  })
+);
 
 app.use(express.json());
 
@@ -62,6 +70,8 @@ cron.schedule("* * * * *", async () => {
   }
 });
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
