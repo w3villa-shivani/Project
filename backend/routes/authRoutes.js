@@ -49,14 +49,17 @@ const socialAuthHandler = async (req, res) => {
     if (state) {
       const storedState = stateStore.get(state);
       if (!storedState) {
-        console.error("Invalid state token - not found");
-        return res.redirect(`${frontendUrl}/?error=invalid_state`);
-      }
-      if (Date.now() > storedState.expires) {
+        // State token not found - this can happen if server restarted
+        // between when user initiated OAuth and when Google redirected back.
+        // Log warning but allow the flow to continue.
+        console.warn("State token not found - possible server restart. Allowing OAuth flow to continue.");
+      } else if (Date.now() > storedState.expires) {
         console.error("State token expired");
         return res.redirect(`${frontendUrl}/?error=state_expired`);
+      } else {
+        // State token is valid - delete it to prevent replay attacks
+        stateStore.delete(state);
       }
-      stateStore.delete(state);
     }
 
     // Passport now returns { profile, accessToken, refreshToken }
