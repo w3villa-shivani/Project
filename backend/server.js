@@ -23,10 +23,11 @@ const app = express();   // ✅ APP MUST BE CREATED BEFORE USE
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // local development
-      "https://project-9w1ffnt7c-shivanisingh-w3villas-projects.vercel.app", // production frontend
-      process.env.FRONTEND_URL // additional frontend URL from env
+      "http://localhost:5173",
+      "https://project-git-main-shivanisingh-w3villas-projects.vercel.app"
     ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
   })
 );
