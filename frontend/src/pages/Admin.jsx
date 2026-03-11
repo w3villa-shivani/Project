@@ -4,10 +4,48 @@ import axios from "../api/axios";
 import Layout from "../components/Layout";
 import "../styles/admin.css";
 
+// Format remaining time as HH:MM:SS
+const formatTime = (ms) => {
+  if (!ms || ms <= 0) return "00:00:00";
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+};
+
 export default function Admin() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
+  const [remainingTimes, setRemainingTimes] = useState({});
+
+  // Countdown timer effect for all users with active plans
+  useEffect(() => {
+    const hasAnyTimer = users.some(u => u.remainingTime > 0 && u.plan !== "free");
+    if (!hasAnyTimer) return;
+
+    const timer = setInterval(() => {
+      setRemainingTimes((prev) => {
+        const newTimes = { ...prev };
+        let hasUpdate = false;
+        
+        users.forEach((user) => {
+          if (user.remainingTime > 0 && user.plan !== "free") {
+            const newTime = Math.max(0, user.remainingTime - 1000);
+            if (newTime !== prev[user._id]) {
+              newTimes[user._id] = newTime;
+              hasUpdate = true;
+            }
+          }
+        });
+
+        return hasUpdate ? newTimes : prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [users]);
 
   // filters/pagination/search state
   const [search, setSearch] = useState("");
@@ -137,10 +175,20 @@ export default function Admin() {
                   </span>
                 </td>
                 <td>
-                  {user.planExpiration
-                    ? new Date(user.planExpiration).toLocaleString()
-                    : "Never"
-                  }
+                  {user.planExpiration && user.plan !== "free" ? (
+                    <div className="admin-timer-cell">
+                      <span className="admin-expiration">
+                        {new Date(user.planExpiration).toLocaleString()}
+                      </span>
+                      {remainingTimes[user._id] > 0 && (
+                        <span className="admin-countdown">
+                          {formatTime(remainingTimes[user._id] || user.remainingTime)}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    "Never"
+                  )}
                 </td>
                 <td>
                   {editingUser === user._id ? (

@@ -18,6 +18,17 @@ export default function Profile() {
   const autocompleteService = useRef(null);
   const geocoder = useRef(null);
   const [userPlan, setUserPlan] = useState(null);
+  const [remainingTime, setRemainingTime] = useState(0);
+
+  // Format remaining time as HH:MM:SS
+  const formatTime = (ms) => {
+    if (!ms || ms <= 0) return "00:00:00";
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -67,6 +78,7 @@ export default function Profile() {
       if (userId) {
         const planRes = await API.get(`/payment/plan-status/${userId}`);
         setUserPlan(planRes.data);
+        setRemainingTime(planRes.data.remainingTime || 0);
       }
     } catch (err) {
       console.error("Profile fetch failed", err);
@@ -78,6 +90,24 @@ export default function Profile() {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!remainingTime || userPlan?.plan === "free") return;
+
+    const timer = setInterval(() => {
+      setRemainingTime((prev) => {
+        if (prev <= 1000) {
+          // Time expired, refetch to get updated plan
+          fetchProfile();
+          return 0;
+        }
+        return prev - 1000;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [userPlan?.plan, remainingTime]);
 
   const uploadImage = async () => {
     if (!image) return;
@@ -354,6 +384,14 @@ export default function Profile() {
                           <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
                         Expires: <strong>{new Date(userPlan.expiration).toLocaleString()}</strong>
+                      </div>
+                    )}
+                    {remainingTime > 0 && userPlan.plan !== "free" && (
+                      <div className="plan-timer">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        Time Remaining: <strong className="timer-countdown">{formatTime(remainingTime)}</strong>
                       </div>
                     )}
                   </div>

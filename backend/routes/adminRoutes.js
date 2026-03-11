@@ -38,10 +38,23 @@ router.get("/users", async (req, res) => {
     // Check for expired plans
     const now = new Date();
     const updatedUsers = users.map(user => {
+      let remainingTime = 0;
+      
       if (user.planExpiration && new Date(user.planExpiration) < now && user.plan !== "free") {
-        user.planStatus = "expired";
+        // Plan has expired, reset to free
+        user.plan = "free";
+        user.planExpiration = null;
+        user.planStatus = "active";
+        user.save();
+      } else if (user.planExpiration && user.plan !== "free") {
+        // Calculate remaining time in milliseconds
+        remainingTime = user.planExpiration.getTime() - now.getTime();
       }
-      return user;
+      
+      return {
+        ...user.toObject(),
+        remainingTime: remainingTime > 0 ? remainingTime : 0
+      };
     });
 
     res.json({ users: updatedUsers, total, page: Number(page), limit: Number(limit) });

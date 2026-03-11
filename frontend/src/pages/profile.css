@@ -464,6 +464,37 @@ PROFILE PAGE - ENHANCED STYLES
   color: var(--text-primary);
 }
 
+.plan-timer {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: var(--border-radius);
+  border: 1px solid #f59e0b;
+}
+
+.plan-timer svg {
+  color: #d97706;
+}
+
+.plan-timer strong {
+  color: #92400e;
+}
+
+.timer-countdown {
+  font-family: "Courier New", monospace;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: #92400e;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
 .upgrade-button {
   display: inline-flex;
   align-items: center;

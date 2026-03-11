@@ -55,16 +55,29 @@ router.get("/plan-status/:userId", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    const now = new Date();
+    let remainingTime = 0;
+    let shouldResetToFree = false;
+
     // Check if plan has expired
-    if (user.planExpiration && new Date() > user.planExpiration) {
-      user.planStatus = "expired";
+    if (user.planExpiration && now > user.planExpiration) {
+      // Plan has expired, reset to free
+      user.plan = "free";
+      user.planExpiration = null;
+      user.planStatus = "active";
+      shouldResetToFree = true;
       await user.save();
+    } else if (user.planExpiration && user.plan !== "free") {
+      // Calculate remaining time in milliseconds
+      remainingTime = user.planExpiration.getTime() - now.getTime();
     }
 
     res.json({
       plan: user.plan,
       expiration: user.planExpiration,
       status: user.planStatus,
+      remainingTime: remainingTime > 0 ? remainingTime : 0,
+      isExpired: shouldResetToFree,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
