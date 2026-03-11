@@ -24,7 +24,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173", // local development
-      process.env.FRONTEND_URL || "https://your-vercel-app.vercel.app" // production frontend
+      "https://project-9w1ffnt7c-shivanisingh-w3villas-projects.vercel.app", // production frontend
+      process.env.FRONTEND_URL // additional frontend URL from env
     ],
     credentials: true
   })
