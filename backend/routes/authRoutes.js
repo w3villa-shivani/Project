@@ -10,6 +10,11 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
+// Get frontend URL from environment variable or fallback
+const getFrontendUrl = () => {
+  return process.env.FRONTEND_URL || "http://localhost:5173";
+};
+
 // Store for state tokens (in production, use Redis or similar)
 const stateStore = new Map();
 
@@ -37,17 +42,19 @@ router.post("/login", login);
 
 const socialAuthHandler = async (req, res) => {
   try {
+    const frontendUrl = getFrontendUrl();
+    
     // Validate state token to prevent CSRF
     const state = req.query.state;
     if (state) {
       const storedState = stateStore.get(state);
       if (!storedState) {
         console.error("Invalid state token - not found");
-        return res.redirect("http://localhost:5173/?error=invalid_state");
+        return res.redirect(`${frontendUrl}/?error=invalid_state`);
       }
       if (Date.now() > storedState.expires) {
         console.error("State token expired");
-        return res.redirect("http://localhost:5173/?error=state_expired");
+        return res.redirect(`${frontendUrl}/?error=state_expired`);
       }
       stateStore.delete(state);
     }
@@ -64,7 +71,7 @@ const socialAuthHandler = async (req, res) => {
 
     if (!email) {
       console.error("No email found in OAuth profile");
-      return res.redirect("http://localhost:5173/?error=email_not_found");
+      return res.redirect(`${frontendUrl}/?error=email_not_found`);
     }
 
     console.log("OAuth email:", email);
@@ -142,10 +149,10 @@ const socialAuthHandler = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.redirect(`http://localhost:5173/oauth-success?token=${token}`);
+    res.redirect(`${frontendUrl}/oauth-success?token=${token}`);
   } catch (err) {
     console.error("Error in socialAuthHandler:", err);
-    res.redirect("http://localhost:5173/?error=oauth_failed");
+    res.redirect(`${getFrontendUrl()}/?error=oauth_failed`);
   }
 };
 
@@ -207,3 +214,4 @@ router.get("/microsoft/callback",
 router.get("/me", authMiddleware, me);
 
 export default router;
+

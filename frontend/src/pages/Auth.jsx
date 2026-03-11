@@ -6,7 +6,13 @@ import "./Auth.css";
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [showAdminSecret, setShowAdminSecret] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", adminSecret: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    adminSecret: "",
+  });
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -33,18 +39,20 @@ export default function Auth() {
           email: form.email,
           password: form.password,
         };
-        
+
         if (form.adminSecret) {
           signupData.adminSecret = form.adminSecret;
         }
-        
+
         const res = await API.post("/auth/signup", signupData);
-        
+
         alert(res.data.message);
         setIsLogin(true);
       } catch (err) {
         if (err.response?.status === 409) {
-          alert("An account with this email already exists. Please login instead.");
+          alert(
+            "An account with this email already exists. Please login instead."
+          );
           setIsLogin(true);
         } else {
           alert(err.response?.data?.message || "Signup failed. Please try again.");
@@ -53,8 +61,14 @@ export default function Auth() {
     }
   };
 
+  // Get API URL
+  const getApiUrl = () => {
+    return import.meta.env.VITE_API_URL || "http://localhost:5000";
+  };
+
   const socialLogin = (provider) => {
-    window.location.href = `http://localhost:5000/auth/${provider}`;
+    const apiUrl = getApiUrl();
+    window.location.href = `${apiUrl}/auth/${provider}`;
   };
 
   return (
@@ -93,19 +107,21 @@ export default function Auth() {
 
           {!isLogin && (
             <>
-              <div 
+              <div
                 className="admin-secret-toggle"
                 onClick={() => setShowAdminSecret(!showAdminSecret)}
               >
                 {showAdminSecret ? "▼ Hide Admin Key" : "► Have an Admin Key?"}
               </div>
-              
+
               {showAdminSecret && (
                 <input
                   type="password"
                   placeholder="Admin Secret Key (optional)"
                   value={form.adminSecret}
-                  onChange={(e) => setForm({ ...form, adminSecret: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, adminSecret: e.target.value })
+                  }
                 />
               )}
             </>
@@ -124,16 +140,18 @@ export default function Auth() {
           <button onClick={() => socialLogin("google")} className="btn-social">
             Continue with Google
           </button>
+
           <button onClick={() => socialLogin("facebook")} className="btn-social">
             Continue with Facebook
           </button>
+
           <button onClick={() => socialLogin("microsoft")} className="btn-social">
             Continue with Microsoft
           </button>
         </div>
 
         <p className="auth-toggle">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}
+          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <span onClick={() => setIsLogin(!isLogin)}>
             {isLogin ? "Sign up" : "Sign in"}
           </span>
@@ -142,4 +160,3 @@ export default function Auth() {
     </div>
   );
 }
-

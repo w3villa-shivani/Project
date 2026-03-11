@@ -2,11 +2,21 @@
 
 import axios from "axios";
 
+// Get API URL from environment variable, fallback to localhost for development
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // Default to localhost for local development
+  return "http://localhost:5000";
+};
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  baseURL: getBaseURL(),
 });
 
-console.log("API Base URL:", import.meta.env.VITE_API_URL || "http://localhost:5000");
+// Log the base URL for debugging
+console.log("API Base URL:", getBaseURL());
 
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
