@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 import Layout from "../components/Layout";
 import "./profile.css";
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -359,7 +361,7 @@ export default function Profile() {
                   <div className="plan-actions">
                     <button 
                       className="upgrade-button"
-                      onClick={() => (window.location.href = "/payment")}
+                      onClick={() => navigate("/payment")}
                     >
                       {userPlan.plan === 'free' ? (
                         <>
@@ -384,7 +386,7 @@ export default function Profile() {
                   </span>
                   <button 
                     className="upgrade-button"
-                    onClick={() => (window.location.href = "/payment")}
+                    onClick={() => navigate("/payment")}
                   >
                     View Plans
                   </button>
