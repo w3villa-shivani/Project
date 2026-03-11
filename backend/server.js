@@ -20,14 +20,23 @@ connectDB();
 
 const app = express();   // ✅ APP MUST BE CREATED BEFORE USE
 
-// Get frontend URL from environment or use localhost for development
+// Get frontend URLs from environment or use defaults
 const getCorsOrigin = () => {
-  const frontendUrl = process.env.FRONTEND_URL;
-  if (frontendUrl) {
-    return [frontendUrl, "http://localhost:5173"];
-  }
-  // Default to localhost for development
-  return ["http://localhost:5173"];
+  // Support multiple frontend URLs (comma-separated in env var)
+  const envOrigins = process.env.FRONTEND_URL?.split(",").map(url => url.trim()) || [];
+  
+  // Default origins for development and production
+  const defaultOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://project-git-main-shivanisingh-w3villas-projects.vercel.app"
+  ];
+  
+  // Combine env origins with defaults
+  const allOrigins = [...new Set([...envOrigins, ...defaultOrigins])];
+  
+  console.log("CORS allowed origins:", allOrigins);
+  return allOrigins;
 };
 
 app.use(

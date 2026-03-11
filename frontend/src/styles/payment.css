@@ -173,22 +173,23 @@ PAYMENT PAGE - PROFESSIONAL STYLES
 }
 
 /* Messages */
-.error-message {
-  color: var(--danger);
+.message {
   padding: var(--spacing-md);
-  background: var(--danger-light);
   border-radius: var(--border-radius);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
   text-align: center;
 }
 
-.success-message {
+.message.success {
   color: var(--success);
-  padding: var(--spacing-md);
   background: var(--success-light);
-  border-radius: var(--border-radius);
-  margin-bottom: var(--spacing-md);
-  text-align: center;
+  border: 1px solid var(--success);
+}
+
+.message.error {
+  color: var(--danger);
+  background: var(--danger-light);
+  border: 1px solid var(--danger);
 }
 
 /* Responsive */
