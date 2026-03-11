@@ -191,138 +191,269 @@ export default function Profile() {
   if (loading)
     return (
       <Layout>
-        <div>Loading...</div>
+        <div className="profile-container">
+          <p>Loading...</p>
+        </div>
       </Layout>
     );
 
   if (!profile)
     return (
       <Layout>
-        <div>Profile not found</div>
+        <div className="profile-container">
+          <p>Profile not found</p>
+        </div>
       </Layout>
     );
 
   return (
     <Layout showBackButton backLink="/home">
       <div className="profile-container">
-
         <div className="profile-header">
-          <h1>Profile</h1>
+          <h1 className="profile-title">Profile</h1>
+          <p className="profile-subtitle">Manage your account information</p>
         </div>
 
         <div className="profile-content">
-
-          {/* Profile Image */}
-          <div className="profile-card">
-            {profile.profileImage ? (
-              <img src={profile.profileImage} alt="profile" />
-            ) : (
-              <p>No image</p>
-            )}
-
-            <input
-              type="file"
-              onChange={(e) => setImage(e.target.files[0])}
-            />
-
-            <button onClick={uploadImage}>Upload</button>
-          </div>
-
-          {/* User Info */}
-          <div className="profile-card">
-            <p><strong>Name:</strong> {profile.name}</p>
-            <p><strong>Email:</strong> {profile.email}</p>
-          </div>
-
-          {/* Download */}
-          <div className="profile-card">
-            <button onClick={downloadProfileJSON}>Download JSON</button>
-            <button onClick={downloadProfileCSV}>Download CSV</button>
-          </div>
-
-          {/* Plan */}
-          <div className="profile-card">
-            <h3>Subscription</h3>
-
-            {userPlan && (
-              <>
-                <p>Plan: {userPlan.plan}</p>
-                <p>Status: {userPlan.status}</p>
-                {userPlan.expiration && (
-                  <p>
-                    Expiry:{" "}
-                    {new Date(userPlan.expiration).toLocaleString()}
-                  </p>
-                )}
-              </>
-            )}
-
-            <button onClick={() => (window.location.href = "/payment")}>
-              Manage Plan
-            </button>
-          </div>
-
-          {/* Address */}
-          <div className="profile-card">
-
-            {!editingAddress ? (
-              <>
-                <p>{profile.address || "Not set"}</p>
-                <button onClick={() => setEditingAddress(true)}>
-                  Edit Address
-                </button>
-              </>
-            ) : (
-              <>
-                <input
-                  value={newAddress}
-                  onChange={(e) => {
-                    setNewAddress(e.target.value);
-                    getAddressSuggestions(e.target.value);
-                  }}
-                />
-
-                {suggestions.length > 0 && (
-                  <ul>
-                    {suggestions.map((s, i) => (
-                      <li key={i} onClick={() => selectAddress(s)}>
-                        {s.description}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <button onClick={updateAddress}>Save</button>
-                <button
-                  onClick={() => {
-                    setEditingAddress(false);
-                    setSuggestions([]);
-                  }}
-                >
-                  Cancel
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Map */}
-          {profile.address && (
+          {/* Profile Image Section */}
+          <div className="profile-image-section">
             <div className="profile-card">
-              <iframe
-                title="map"
-                width="100%"
-                height="300"
-                style={{ border: 0 }}
-                loading="lazy"
-                src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(
-                  profile.address
-                )}`}
-              ></iframe>
+              <div className="profile-image-container">
+                {profile.profileImage ? (
+                  <img 
+                    src={profile.profileImage} 
+                    alt="profile" 
+                    className="profile-image"
+                  />
+                ) : (
+                  <div className="no-image">
+                    <span>No Image</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="upload-section">
+                <label className="upload-label">Upload New Photo</label>
+                <input
+                  type="file"
+                  className="upload-input"
+                  onChange={(e) => setImage(e.target.files[0])}
+                  accept="image/*"
+                />
+                <button 
+                  className="upload-button" 
+                  onClick={uploadImage}
+                  disabled={!image}
+                >
+                  Upload Image
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* User Details Section */}
+          <div className="user-details-section">
+            <div className="profile-card">
+              <div className="section-header">
+                <h3>Account Details</h3>
+              </div>
+              
+              <div className="detail-group">
+                <span className="detail-label">Name</span>
+                <span className="detail-value">{profile.name}</span>
+              </div>
+              
+              <div className="detail-group">
+                <span className="detail-label">Email</span>
+                <span className="detail-value">{profile.email}</span>
+              </div>
+              
+              {profile.phone && (
+                <div className="detail-group">
+                  <span className="detail-label">Phone</span>
+                  <span className="detail-value">{profile.phone}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Download Section */}
+          <div className="download-section">
+            <div className="profile-card">
+              <div className="section-header">
+                <h3>Download Your Data</h3>
+              </div>
+              
+              <p className="download-description">
+                Export your profile data in your preferred format
+              </p>
+              
+              <div className="download-buttons">
+                <button 
+                  className="download-button json"
+                  onClick={downloadProfileJSON}
+                >
+                  Download JSON
+                </button>
+                <button 
+                  className="download-button csv"
+                  onClick={downloadProfileCSV}
+                >
+                  Download CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Plan Section */}
+          <div className="plan-section">
+            <div className="profile-card">
+              <div className="section-header">
+                <h3>Subscription Plan</h3>
+              </div>
+              
+              {userPlan && (
+                <>
+                  <div className="plan-info">
+                    <div>
+                      <span className="plan-badge">
+                        {userPlan.plan?.toUpperCase()}
+                      </span>
+                    </div>
+                    {userPlan.expiration && (
+                      <div className="plan-expiration">
+                        Expires: <strong>{new Date(userPlan.expiration).toLocaleString()}</strong>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <button 
+                    className="upgrade-button"
+                    onClick={() => (window.location.href = "/payment")}
+                  >
+                    Manage Plan
+                  </button>
+                </>
+              )}
+              
+              {!userPlan && (
+                <button 
+                  className="upgrade-button"
+                  onClick={() => (window.location.href = "/payment")}
+                >
+                  View Plans
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Address Section */}
+          <div className="address-section">
+            <div className="profile-card">
+              <div className="section-header">
+                <h3>Address</h3>
+              </div>
+              
+              {!editingAddress ? (
+                <div className="address-display">
+                  <div className="address-value">
+                    <p className={profile.address ? "" : "detail-value muted"}>
+                      {profile.address || "No address set"}
+                    </p>
+                  </div>
+                  <button 
+                    className="edit-address-button"
+                    onClick={() => setEditingAddress(true)}
+                  >
+                    Edit Address
+                  </button>
+                </div>
+              ) : (
+                <div className="address-edit-form">
+                  <div className="address-alert info">
+                    <p>Start typing your address and select from the suggestions</p>
+                  </div>
+                  
+                  <input
+                    type="text"
+                    className="address-input"
+                    value={newAddress}
+                    onChange={(e) => {
+                      setNewAddress(e.target.value);
+                      getAddressSuggestions(e.target.value);
+                    }}
+                    placeholder="Enter your address"
+                  />
+                  
+                  {suggestions.length > 0 && (
+                    <ul className="suggestions-list">
+                      {suggestions.map((s, i) => (
+                        <li 
+                          key={i} 
+                          className="suggestion-item"
+                          onClick={() => selectAddress(s)}
+                        >
+                          {s.description}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  
+                  <div className="address-buttons">
+                    <button 
+                      className="save-address-button"
+                      onClick={updateAddress}
+                    >
+                      Save Address
+                    </button>
+                    <button 
+                      className="cancel-address-button"
+                      onClick={() => {
+                        setEditingAddress(false);
+                        setSuggestions([]);
+                        setNewAddress(profile.address || "");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Map Section */}
+          {profile.address && (
+            <div className="map-section">
+              <div className="profile-card">
+                <div className="map-header">
+                  <h3>Location</h3>
+                  <p className="map-address">
+                    <strong>{profile.address}</strong>
+                  </p>
+                </div>
+                
+                <div className="map-container">
+                  <iframe
+                    title="map"
+                    loading="lazy"
+                    src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(
+                      profile.address
+                    )}`}
+                  ></iframe>
+                </div>
+                
+                <div className="map-footer">
+                  <small>
+                    Powered by <a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Google Maps</a>
+                  </small>
+                </div>
+              </div>
             </div>
           )}
-
         </div>
       </div>
     </Layout>
   );
 }
+
