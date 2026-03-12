@@ -1,6 +1,7 @@
 //app.jsx
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import OAuthSuccess from "./pages/OAuthSuccess";
@@ -8,9 +9,33 @@ import Profile from "./pages/Profile";
 import Payment from "./pages/Payment";
 import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
+import API from "./api/axios";
 import "./App.css";
 
 function App() {
+  const hasToken = !!localStorage.getItem("token");
+  
+  // Keep-alive mechanism to prevent serverless cold starts
+  // This pings the backend periodically to keep the function warm
+  useEffect(() => {
+    if (!hasToken) return;
+    
+    const keepAliveInterval = setInterval(() => {
+      // Ping health endpoint to keep serverless function warm
+      API.get("/health", { timeout: 5000 })
+        .then(() => {
+          console.log("Keep-alive ping successful");
+        })
+        .catch((err) => {
+          console.log("Keep-alive ping failed:", err.message);
+        });
+    }, 45000); // Ping every 45 seconds (less than typical 55s timeout)
+    
+    return () => {
+      clearInterval(keepAliveInterval);
+    };
+  }, [hasToken]);
+
   return (
     <BrowserRouter>
       <Routes>

@@ -60,6 +60,15 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Health check endpoint - useful for keeping serverless functions warm
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 app.use("/auth", authRoutes);
 app.use("/profile", profileRoutes);  // ✅ AFTER app is declared
 app.use("/payment", paymentRoutes);
