@@ -27,8 +27,10 @@ const connectDB = async () => {
       console.error("=> SCRAM authentication failed. Verify credentials are correct.");
     }
     
-    process.exit(1);
+    console.error("=> Server continuing without DB - /health will report status");
+    // Don't exit - let server run for health checks
   }
+
 };
 
 // Handle connection events

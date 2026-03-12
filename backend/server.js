@@ -6,6 +6,7 @@ import cors from "cors";
 import passport from "passport";
 import session from "express-session";
 import cron from "node-cron";
+import mongoose from "mongoose";
 
 import connectDB from "./config/db.js";
 import "./config/passport.js";
@@ -28,8 +29,9 @@ const getCorsOrigin = () => {
   // Default origins for development and production
   const defaultOrigins = [
     "http://localhost:5173",
-    "http://localhost:3000",
-    "https://project-git-main-shivanisingh-w3villas-projects.vercel.app"
+    "http://localhost:3000", 
+    "https://project-git-main-shivanisingh-w3villas-projects.vercel.app",
+    "https://project-8iej.onrender.com"
   ];
   
   // Combine env origins with defaults
@@ -62,11 +64,26 @@ app.use(passport.session());
 
 // Health check endpoint - useful for keeping serverless functions warm
 app.get("/health", (req, res) => {
-  res.status(200).json({ 
-    status: "ok", 
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+  try {
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    const version = process.env.npm_package_version || 'unknown';
+    
+    // Optional token info (no fail)
+    const userId = req.headers.authorization?.startsWith('Bearer ') 
+      ? 'present' 
+      : 'missing';
+      
+    res.status(200).json({ 
+      status: "ok", 
+      dbStatus,
+      version,
+      userId,
+      timestamp: new Date().toISOString(),
+      uptime: Math.round(process.uptime())
+    });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Health check failed" });
+  }
 });
 
 app.use("/auth", authRoutes);
