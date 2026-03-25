@@ -25,7 +25,7 @@ export default function Payment() {
     {
       id: "silver",
       name: "Silver",
-      price: 0,
+      price: 4.99,
       duration: "1 Hour",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -36,8 +36,8 @@ export default function Payment() {
     },
     {
       id: "gold",
-      name: "Gold",
-      price: 0,
+      name: "Gold", 
+      price: 9.99,
       duration: "6 Hours",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -49,6 +49,32 @@ export default function Payment() {
   ];
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get("success");
+    const cancelled = urlParams.get("cancelled");
+
+    if (success) {
+      setMessage({ type: "success", text: "Payment successful! Refreshing plan status..." });
+      // Poll for updated plan status
+      const pollInterval = setInterval(async () => {
+        try {
+          const userId = localStorage.getItem("userId");
+          if (userId) {
+            const response = await axios.get(`/payment/plan-status/${userId}`);
+            if (response.data.status === "active" && response.data.plan !== "free") {
+              setUserPlan(response.data);
+              clearInterval(pollInterval);
+            }
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+        }
+      }, 2000);
+      return () => clearInterval(pollInterval);
+    } else if (cancelled) {
+      setMessage({ type: "error", text: "Payment cancelled." });
+    }
+
     const fetchUserPlan = async () => {
       try {
         const userId = localStorage.getItem("userId");
@@ -65,30 +91,52 @@ export default function Payment() {
   }, []);
 
   const handleActivatePlan = async (plan) => {
+    if (plan.price === 0) {
+      // Free plan - use old logic
+      setLoading(true);
+      setMessage(null);
+      setSelectedPlan(plan);
+      try {
+        const userId = localStorage.getItem("userId");
+        const response = await axios.post("/payment/activate-plan", {
+          userId,
+          planId: plan.id,
+        });
+        if (response.data.success) {
+          setMessage({ type: "success", text: `${plan.name} plan activated!` });
+          setUserPlan({
+            plan: plan.id,
+            status: "active",
+            expiration: response.data.user.planExpiration,
+          });
+        }
+      } catch (error) {
+        setMessage({ type: "error", text: error.response?.data?.error || "Activation failed" });
+      }
+      setLoading(false);
+      return;
+    }
+
+    // Paid plan - create Stripe checkout
     setLoading(true);
     setMessage(null);
     setSelectedPlan(plan);
-
     try {
       const userId = localStorage.getItem("userId");
-      const response = await axios.post("/payment/activate-plan", {
-        userId,
-        planId: plan.id,
-      });
-
-      if (response.data.success) {
-        setMessage({ type: "success", text: `${plan.name} plan activated successfully!` });
-        setUserPlan({
-          plan: plan.id,
-          status: "active",
-          expiration: response.data.user.planExpiration,
-        });
-      }
+      if (!userId) throw new Error("User not logged in");
+      
+      const token = localStorage.getItem("token");
+      const response = await axios.post("/payment/create-checkout-session", 
+        { planId: plan.id },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      window.location.href = response.data.url;
     } catch (error) {
-      setMessage({ type: "error", text: error.response?.data?.error || "Failed to activate plan" });
+      setMessage({ type: "error", text: error.response?.data?.error || "Checkout failed" });
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -126,7 +174,7 @@ export default function Payment() {
                 {plan.icon}
               </div>
               <h2>{plan.name}</h2>
-              <p className="price">Free</p>
+              <p className="price">${plan.price.toFixed(2)}</p>
               <p className="duration">{plan.duration}</p>
               <ul>
                 {plan.features.map((feature, idx) => (
@@ -146,8 +194,8 @@ export default function Payment() {
                 {userPlan?.plan === plan.id && userPlan?.status === "active"
                   ? "Current Plan"
                   : loading && selectedPlan?.id === plan.id
-                  ? "Activating..."
-                  : "Activate"}
+                  ? "Processing..."
+                  : plan.price === 0 ? "Activate Free" : "Pay Now"}
               </button>
             </div>
           ))}

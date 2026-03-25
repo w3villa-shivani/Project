@@ -50,7 +50,13 @@ app.use(
   })
 );
 
-app.use(express.json());
+// Body parsers - raw BEFORE json for Stripe webhook
+app.use(express.raw({ type: "application/json" }));
+app.use(express.json({ verify: (req, res, buf) => {
+  if (req.headers["stripe-signature"]) {
+    req.rawBody = buf;
+  }
+} }));
 
 // Session configuration for Passport OAuth
 app.use(session({
@@ -93,25 +99,45 @@ app.use("/admin", adminRoutes);
 
 app.use("/uploads", express.static("uploads"));
 
-// Cron job to check and expire plans every minute
-cron.schedule("* * * * *", async () => {
-  try {
-    const now = new Date();
-    const expiredUsers = await User.updateMany(
-      {
-        planExpiration: { $lt: now },
-        planStatus: "active",
-        plan: { $ne: "free" }, // Free plans don't expire
-      },
-      { planStatus: "expired" }
-    );
-
-    if (expiredUsers.modifiedCount > 0) {
-      console.log(`Expired ${expiredUsers.modifiedCount} user plans`);
-    }
-  } catch (error) {
-    console.error("Error in plan expiration cron job:", error);
+// Cron job to check and expire plans every 5 minutes (reduced load)
+cron.schedule("*/5 * * * *", async () => {
+  // Skip if DB not ready
+  if (mongoose.connection.readyState !== 1) {
+    console.log("Plan expiration cron skipped: DB not connected");
+    return;
   }
+
+  const maxRetries = 3;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const now = new Date();
+      const expiredUsers = await User.updateMany(
+        {
+          planExpiration: { $lt: now },
+          planStatus: "active",
+          plan: { $ne: "free" }, // Free plans don't expire
+        },
+        { planStatus: "expired" }
+      );
+
+      if (expiredUsers.modifiedCount > 0) {
+        console.log(`Plan cron: Expired ${expiredUsers.modifiedCount} user plans`);
+      } else {
+        console.log("Plan cron: No plans to expire");
+      }
+      return; // Success, exit retries
+    } catch (error) {
+      lastError = error;
+      console.error(`Plan cron attempt ${attempt} failed:`, error.message);
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Backoff
+      }
+    }
+  }
+  
+  console.error("Plan cron failed after all retries:", lastError);
 });
 
 const PORT = process.env.PORT || 5000;

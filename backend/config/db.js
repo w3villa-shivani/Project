@@ -1,5 +1,3 @@
-//db.js
-
 import mongoose from "mongoose";
 
 const connectDB = async () => {
@@ -11,13 +9,26 @@ const connectDB = async () => {
     }
     
     console.log("Attempting to connect to MongoDB...");
-    await mongoose.connect(mongoURI);
+    await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      maxIdleTimeMS: 30000,
+      retryWrites: true,
+      retryReads: true
+    });
     console.log("MongoDB Connected successfully");
   } catch (error) {
     console.error("MongoDB Connection Error:", error.message);
     
     // Provide helpful error messages based on error type
-    if (error.message.includes("ENOTFOUND")) {
+    if (error.message.includes("PoolClearedOnNetworkError") || 
+        error.message.includes("server monitor timeout") || 
+        error.message.includes("MongoParseError") ||
+        error.message.includes("MongoNetworkTimeoutError")) {
+      console.error("=> MongoDB Atlas connection timeout/network issue. Add your IP to Atlas Network Access (0.0.0.0/0 for dev).");
+    } else if (error.message.includes("ENOTFOUND")) {
       console.error("=> The cluster hostname could not be found.");
       console.error("=> Please verify your MONGO_URI is correct and the cluster exists.");
       console.error("=> Example: mongodb+srv://<username>:<password>@cluster0.mongodb.net/myapp?...");
@@ -28,9 +39,7 @@ const connectDB = async () => {
     }
     
     console.error("=> Server continuing without DB - /health will report status");
-    // Don't exit - let server run for health checks
   }
-
 };
 
 // Handle connection events
