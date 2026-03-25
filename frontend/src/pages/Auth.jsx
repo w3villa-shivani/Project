@@ -161,14 +161,6 @@ export default function Auth() {
           <button onClick={() => socialLogin("google")} className="btn-social">
             Continue with Google
           </button>
-
-          <button onClick={() => socialLogin("facebook")} className="btn-social">
-            Continue with Facebook
-          </button>
-
-          <button onClick={() => socialLogin("microsoft")} className="btn-social">
-            Continue with Microsoft
-          </button>
         </div>
 
         <p className="auth-toggle">

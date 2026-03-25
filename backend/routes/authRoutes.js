@@ -177,42 +177,6 @@ router.get("/google/callback",
   socialAuthHandler
 );
 
-/* ================= FACEBOOK ================= */
-
-router.get("/facebook",
-  (req, res, next) => {
-    const state = generateStateToken();
-    stateStore.set(state, { expires: Date.now() + 600000 });
-    passport.authenticate("facebook", { 
-      scope: ["email"],
-      state: state,
-    })(req, res, next);
-  }
-);
-
-router.get("/facebook/callback",
-  passport.authenticate("facebook", { session: false }),
-  socialAuthHandler
-);
-
-/* ================= MICROSOFT ================= */
-
-router.get("/microsoft",
-  (req, res, next) => {
-    const state = generateStateToken();
-    stateStore.set(state, { expires: Date.now() + 600000 });
-    passport.authenticate("microsoft", { 
-      scope: ["user.read"],
-      state: state,
-    })(req, res, next);
-  }
-);
-
-router.get("/microsoft/callback",
-  passport.authenticate("microsoft", { session: false }),
-  socialAuthHandler
-);
-
 // extra helper route for client
 router.get("/me", authMiddleware, me);
 
