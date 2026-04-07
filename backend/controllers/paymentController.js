@@ -34,6 +34,12 @@ export const createCheckoutSession = async (req, res) => {
   try {
     const { planId, userId } = req.body;
 
+    if (req.user.id !== userId) {
+      return res.status(403).json({ 
+        error: "Unauthorized for this user" 
+      });
+    }
+
     if (!planId || !userId) {
       return res.status(400).json({ 
         error: "Missing planId or userId" 
@@ -225,6 +231,12 @@ export const activateFreePlan = async (req, res) => {
   try {
     const { userId } = req.body;
 
+    if (req.user.id !== userId) {
+      return res.status(403).json({ 
+        error: "Unauthorized for this user" 
+      });
+    }
+
     if (!userId) {
       return res.status(400).json({ 
         error: "Missing userId" 
@@ -266,6 +278,12 @@ export const activateFreePlan = async (req, res) => {
  */
 export const getPlanStatus = async (req, res) => {
   try {
+    if (req.user.id !== req.params.userId) {
+      return res.status(403).json({ 
+        error: "Unauthorized for this user" 
+      });
+    }
+
     const user = await User.findById(req.params.userId).select(
       "plan planExpiration planStatus"
     );

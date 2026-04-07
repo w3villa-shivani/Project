@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useNavigate } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import axios from "../api/axios";
 import Layout from "../components/Layout";
@@ -73,6 +73,7 @@ const formatRemainingTime = (ms) => {
 };
 
 export default function Payment() {
+  const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -153,11 +154,7 @@ export default function Payment() {
     try {
       const userId = localStorage.getItem("userId");
       if (!userId) {
-        setMessage({
-          type: "error",
-          text: "Please log in first",
-        });
-        setLoading(false);
+        navigate("/auth");
         return;
       }
 

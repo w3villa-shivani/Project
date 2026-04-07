@@ -1,6 +1,7 @@
 // filepath: backend/routes/paymentRoutes.js
 import express from "express";
 import bodyParser from "body-parser";
+import authMiddleware from "../middlewares/authMiddleware.js";
 import {
   createCheckoutSession,
   handleWebhook,
@@ -20,19 +21,19 @@ router.post(
 );
 
 // Create checkout session for payment
-router.post("/create-checkout-session", createCheckoutSession);
+router.post("/create-checkout-session", authMiddleware, createCheckoutSession);
 
 // Retrieve checkout session status
-router.get("/checkout-session/:sessionId", getCheckoutSessionStatus);
+router.get("/checkout-session/:sessionId", authMiddleware, getCheckoutSessionStatus);
 
 // Activate free plan (no payment required)
-router.post("/activate-free", activateFreePlan);
+router.post("/activate-free", authMiddleware, activateFreePlan);
 
 // Get current user's plan status
-router.get("/plan-status/:userId", getPlanStatus);
+router.get("/plan-status/:userId", authMiddleware, getPlanStatus);
 
 // Get available plans
-router.get("/plans", getPlans);
+router.get("/plans", authMiddleware, getPlans);
 
 // Legacy endpoint for backward compatibility
 router.post("/activate-plan", activateFreePlan);
