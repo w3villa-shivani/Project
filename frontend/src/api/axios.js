@@ -4,10 +4,13 @@ import axios from "axios";
 
 // Get API URL from environment variable, fallback to localhost for development
 const getBaseURL = () => {
+  // Production: VITE_API_URL (user sets in Vercel) → relative '/api' (Vercel proxy) → localhost dev
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  // Default to localhost for local development
+  if (import.meta.env.PROD) {
+    return '/api';  // Relative for Vercel static deploy with proxy
+  }
   return "http://localhost:5000";
 };
 
@@ -16,8 +19,7 @@ const API = axios.create({
   timeout: 60000, // 60 second timeout for Render cold starts
 });
 
-// Log the base URL for debugging
-console.log("API Base URL:", getBaseURL());
+/* API Base URL logged via getBaseURL() */
 
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");

@@ -7,6 +7,8 @@ import Home from "./pages/Home";
 import OAuthSuccess from "./pages/OAuthSuccess";
 import Profile from "./pages/Profile";
 import Payment from "./pages/Payment";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import API from "./api/axios";
@@ -71,6 +73,26 @@ function App() {
           element={
             <ProtectedRoute>
               <Payment />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Payment Success */}
+        <Route
+          path="/payment/success"
+          element={
+            <ProtectedRoute>
+              <PaymentSuccess />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Payment Cancel */}
+        <Route
+          path="/payment/cancel"
+          element={
+            <ProtectedRoute>
+              <PaymentCancel />
             </ProtectedRoute>
           }
         />

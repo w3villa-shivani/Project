@@ -52,6 +52,22 @@ app.use(
 
 app.use(express.json());
 
+// Store raw body for webhook signature verification
+app.use((req, res, next) => {
+  if (req.path === "/payment/webhook") {
+    let rawBody = "";
+    req.on("data", (chunk) => {
+      rawBody += chunk.toString();
+    });
+    req.on("end", () => {
+      req.rawBody = rawBody;
+      next();
+    });
+  } else {
+    next();
+  }
+});
+
 // Session configuration for Passport OAuth
 app.use(session({
   secret: process.env.JWT_SECRET || "session_secret",
@@ -97,17 +113,22 @@ app.use("/uploads", express.static("uploads"));
 cron.schedule("* * * * *", async () => {
   try {
     const now = new Date();
+    
+    // Find expired users and reset them to free plan
     const expiredUsers = await User.updateMany(
       {
         planExpiration: { $lt: now },
-        planStatus: "active",
-        plan: { $ne: "free" }, // Free plans don't expire
+        plan: { $ne: "free" }, // Non-free plans that have expired
       },
-      { planStatus: "expired" }
+      { 
+        plan: "free",
+        planExpiration: null,
+        planStatus: "expired"
+      }
     );
 
     if (expiredUsers.modifiedCount > 0) {
-      console.log(`Expired ${expiredUsers.modifiedCount} user plans`);
+      console.log(`[CRON] Expired ${expiredUsers.modifiedCount} user plans - reset to free`);
     }
   } catch (error) {
     console.error("Error in plan expiration cron job:", error);
