@@ -1,4 +1,5 @@
-import { useState, useEffect, useNavigate } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import axios from "../api/axios";
 import Layout from "../components/Layout";
@@ -118,7 +119,12 @@ export default function Payment() {
           setPlans(plansWithIcons);
         }
       } catch (error) {
-        console.error("Error fetching plans:", error);
+        if (error.response?.status === 401) {
+          setMessage({ type: "error", text: "Please login first" });
+          navigate("/auth");
+        } else {
+          console.error("Error fetching plans:", error);
+        }
       }
     };
     fetchPlans();
@@ -208,7 +214,7 @@ export default function Payment() {
     } catch (error) {
       setMessage({
         type: "error",
-        text: error.response?.data?.error || "Failed to activate plan",
+        text: error.response?.status === 401 ? "Please login first" : error.response?.data?.error || "Failed to activate plan",
       });
     }
 

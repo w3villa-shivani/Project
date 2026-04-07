@@ -33,7 +33,7 @@ router.post("/activate-free", authMiddleware, activateFreePlan);
 router.get("/plan-status/:userId", authMiddleware, getPlanStatus);
 
 // Get available plans
-router.get("/plans", authMiddleware, getPlans);
+router.get("/plans", getPlans);
 
 // Legacy endpoint for backward compatibility
 router.post("/activate-plan", activateFreePlan);
