@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Get API URL from environment variable, fallback to localhost for development
 const getBaseURL = () => {
-  // Production: VITE_API_URL (user sets in Vercel) → relative '/api' (Vercel proxy) → localhost dev
+  // // Production: VITE_API_URL (user sets in Vercel) → relative '/api' (Vercel proxy) → localhost dev
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }

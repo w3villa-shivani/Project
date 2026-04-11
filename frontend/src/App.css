@@ -231,3 +231,336 @@ APP LAYOUT STYLES
     padding: 0 var(--spacing-md);
   }
 }
+
+/* =====================================================
+App.css
+===================================================== */
+
+/* =====================================================
+AUTH PAGE - PROFESSIONAL STYLES
+===================================================== */
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--gray-50) 0%,
+    var(--gray-100) 100%
+  );
+  padding: var(--spacing-lg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--white);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--spacing-2xl);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.auth-header h2 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.auth-header p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.auth-form input {
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.auth-form input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Submit Button */
+.btn-submit {
+  padding: var(--spacing-md);
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  margin-top: var(--spacing-sm);
+}
+
+.btn-submit:hover {
+  background: var(--primary-hover);
+}
+
+.btn-submit:disabled {
+  background: var(--gray-300);
+  cursor: not-allowed;
+}
+
+/* Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: var(--spacing-lg) 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.auth-divider span {
+  padding: 0 var(--spacing-md);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Social Buttons */
+.social-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.btn-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-md);
+  background: var(--white);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-social:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+/* Toggle */
+.auth-toggle {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+  color: var(--text-secondary);
+}
+
+.auth-toggle span {
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 500;
+  margin-left: var(--spacing-xs);
+}
+
+.auth-toggle span:hover {
+  text-decoration: underline;
+}
+
+/* Admin Secret Toggle */
+.admin-secret-toggle {
+  color: var(--primary);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) 0;
+  user-select: none;
+}
+
+.admin-secret-toggle:hover {
+  text-decoration: underline;
+}
+
+/* Password Input Wrapper */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  border-radius: 50%;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-primary);
+  background: var(--gray-100);
+}
+
+.password-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.password-toggle-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.password-toggle-btn:hover svg {
+  transform: scale(1.1);
+}
+
+/* OAuth Loading */
+.oauth-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.oauth-loading h2 {
+  color: var(--text-primary);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: var(--spacing-lg);
+  }
+
+  .auth-container {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Email Verification Page */
+.verification-card {
+  text-align: center;
+}
+
+.verification-icon {
+  font-size: 64px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.icon-success {
+  color: #4caf50;
+  font-size: 64px;
+}
+
+.icon-error {
+  color: #f44336;
+  font-size: 64px;
+}
+
+.spinner {
+  border: 4px solid var(--gray-200);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.verification-message {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.6;
+}
+
+.verification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.error-message {
+  padding: var(--spacing-md);
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+  border-radius: var(--border-radius);
+  color: #c62828;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.success-message {
+  padding: var(--spacing-md);
+  background-color: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  border-radius: var(--border-radius);
+  color: #2e7d32;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.countdown-text {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin: var(--spacing-md) 0;
+  opacity: 0.8;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-submit:disabled:hover {
+  background-color: var(--primary);
+  transform: none;
+}
