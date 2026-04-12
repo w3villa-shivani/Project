@@ -19,7 +19,7 @@
 // export const sendVerificationEmail = async (email, verificationToken) => {
 //   try {
 //     const transporter = createTransporter();
-    
+
 //     // Get frontend URL from environment or use localhost for development
 //     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 //     const verificationUrl = `${frontendUrl}/verify/${verificationToken}`;
@@ -57,8 +57,6 @@
 
 // export default { sendVerificationEmail };
 
-
-
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
@@ -66,36 +64,37 @@ dotenv.config(); // Loads variables from .env file
 
 // 1. Create transporter ONCE outside the function
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Use SSL/TLS
-  family: 4,
-  auth: {
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS, // 16-digit App Password
-  },
+  host: "74.125.20.108",
+  servername: "smtp.gmail.com",
+  port: 465,
+  secure: true, // Use SSL/TLS
+  family: 4,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // 16-digit App Password
+  },
 });
 
 // 2. Verify connection on startup
 transporter.verify((error, success) => {
-  if (error) {
-    console.error("Transporter connection error:", error);
-  } else {
-    console.log("Server is ready to take our messages");
-  }
+  if (error) {
+    console.error("Transporter connection error:", error);
+  } else {
+    console.log("Server is ready to take our messages");
+  }
 });
 
 // 3. Send verification email
 export const sendVerificationEmail = async (email, verificationToken) => {
-  try {
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    const verificationUrl = `${frontendUrl}/verify/${verificationToken}`;
+  try {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const verificationUrl = `${frontendUrl}/verify/${verificationToken}`;
 
-    const mailOptions = {
-      from: `"My Hobby App" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Confirm your Email',
-      html: `
+    const mailOptions = {
+      from: `"My Hobby App" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Confirm your Email",
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px;">
           <h2 style="color: #333;">Verify Your Email Address</h2>
           <p>Thank you for signing up! Please click the button below to verify your email address:</p>
@@ -112,15 +111,15 @@ export const sendVerificationEmail = async (email, verificationToken) => {
           </p>
         </div>
       `,
-    };
+    };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent: ${info.messageId}`);
-    return true;
-  } catch (error) {
-    console.error("Error sending verification email:", error);
-    return false;
-  }
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Email sent: ${info.messageId}`);
+    return true;
+  } catch (error) {
+    console.error("Error sending verification email:", error);
+    return false;
+  }
 };
 
 export default { sendVerificationEmail };
