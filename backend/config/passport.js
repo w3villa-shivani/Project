@@ -51,10 +51,13 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Google Strategy
+const googleCallbackURL = process.env.GOOGLE_CALLBACK_URL || `${getBaseUrl()}/auth/google/callback`;
+console.log("Google OAuth callback URL:", googleCallbackURL);
+
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `${getBaseUrl()}/auth/google/callback`,
+  callbackURL: googleCallbackURL,
   passReqToCallback: true,
 },
 (req, accessToken, refreshToken, profile, done) => {
