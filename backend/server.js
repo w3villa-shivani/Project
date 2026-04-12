@@ -30,6 +30,7 @@ const getCorsOrigin = () => {
   const defaultOrigins = [
     "http://localhost:5173",
     "http://localhost:5000", 
+    "https://project-shivanisingh-w3villas-projects.vercel.app",
     "https://project-git-main-shivanisingh-w3villas-projects.vercel.app",
     "https://project-8iej.onrender.com"
   ];
