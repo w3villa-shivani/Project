@@ -15,19 +15,8 @@ if (!process.env.GOOGLE_CLIENT_SECRET) {
   console.error("⚠️ GOOGLE_CLIENT_SECRET is not set in .env file");
 }
 
-// Get base URL from environment or use default
-const getBaseUrl = () => {
-  // Explicit BASE_URL override
-  if (process.env.BASE_URL) {
-    return process.env.BASE_URL;
-  }
-  // Production: Vercel sets VERCEL_URL env var
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  // Development fallback
-  return "http://localhost:5000";
-};
+// Fallback callback URL (only used if not overridden dynamically in authRoutes)
+const fallbackCallbackURL = process.env.GOOGLE_CALLBACK_URL || "http://localhost:5000/auth/google/callback";
 
 // Serialize user - store user ID in session
 passport.serializeUser((user, done) => {
@@ -50,14 +39,10 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Google Strategy
-const googleCallbackURL = process.env.GOOGLE_CALLBACK_URL || `${getBaseUrl()}/auth/google/callback`;
-console.log("Google OAuth callback URL:", googleCallbackURL);
-
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: googleCallbackURL,
+  callbackURL: fallbackCallbackURL,
   passReqToCallback: true,
 },
 (req, accessToken, refreshToken, profile, done) => {

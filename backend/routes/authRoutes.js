@@ -15,6 +15,13 @@ const getFrontendUrl = () => {
   return process.env.FRONTEND_URL || "http://localhost:5173";
 };
 
+// Dynamically build OAuth callback URL from request headers (works on any domain)
+const getOAuthCallbackUrl = (req) => {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+  const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost:5000";
+  return `${protocol}://${host}/auth/google/callback`;
+};
+
 // Store for state tokens (in production, use Redis or similar)
 const stateStore = new Map();
 
@@ -168,13 +175,14 @@ router.get("/google",
     passport.authenticate("google", { 
       scope: ["profile", "email"],
       state: state,
+      callbackURL: getOAuthCallbackUrl(req),
     })(req, res, next);
   }
 );
 
 router.get("/google/callback",
   (req, res, next) => {
-    passport.authenticate("google", { session: false }, (err, user, info) => {
+    passport.authenticate("google", { session: false, callbackURL: getOAuthCallbackUrl(req) }, (err, user, info) => {
       if (err) {
         console.error("Google OAuth error:", err);
         return res.redirect(`${getFrontendUrl()}/?error=oauth_failed&message=${encodeURIComponent(err.message || "unknown_error")}`);
