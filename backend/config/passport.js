@@ -17,13 +17,13 @@ if (!process.env.GOOGLE_CLIENT_SECRET) {
 
 // Get base URL from environment or use default
 const getBaseUrl = () => {
-  // Production: Vercel sets VERCEL_URL env var
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
   // Explicit BASE_URL override
   if (process.env.BASE_URL) {
     return process.env.BASE_URL;
+  }
+  // Production: Vercel sets VERCEL_URL env var
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
   }
   // Development fallback
   return "http://localhost:5000";
@@ -84,5 +84,4 @@ passport.use(new GoogleStrategy({
   }
 }
 ));
-
 
