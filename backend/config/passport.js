@@ -65,7 +65,12 @@ passport.use(new GoogleStrategy({
     console.log("Google OAuth callback received");
     console.log("Google profile ID:", profile.id);
     console.log("Google profile emails:", profile.emails);
-    
+
+    if (!profile.emails || profile.emails.length === 0) {
+      console.error("Google Strategy: No emails found in profile");
+      return done(new Error("No email found in Google profile"), null);
+    }
+
     // Return user data with tokens
     return done(null, {
       profile: {
@@ -79,7 +84,7 @@ passport.use(new GoogleStrategy({
       refreshToken,
     });
   } catch (err) {
-    console.error("Error in Google Strategy:", err);
+    console.error("Error in Google Strategy verify callback:", err);
     return done(err, null);
   }
 }

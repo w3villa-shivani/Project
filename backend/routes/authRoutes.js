@@ -173,7 +173,20 @@ router.get("/google",
 );
 
 router.get("/google/callback",
-  passport.authenticate("google", { session: false }),
+  (req, res, next) => {
+    passport.authenticate("google", { session: false }, (err, user, info) => {
+      if (err) {
+        console.error("Google OAuth error:", err);
+        return res.redirect(`${getFrontendUrl()}/?error=oauth_failed&message=${encodeURIComponent(err.message || "unknown_error")}`);
+      }
+      if (!user) {
+        console.error("Google OAuth failed - no user. Info:", info);
+        return res.redirect(`${getFrontendUrl()}/?error=oauth_failed&message=${encodeURIComponent(info?.message || "no_user")}`);
+      }
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   socialAuthHandler
 );
 
