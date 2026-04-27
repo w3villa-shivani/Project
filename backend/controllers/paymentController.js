@@ -4,6 +4,38 @@ import User from "../models/user.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+const getFrontendBaseUrl = () => {
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL.split(",")[0].trim();
+  }
+
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL;
+  }
+
+  return "http://localhost:5173";
+};
+
+const buildCheckoutLineItem = (plan) => {
+  if (typeof plan.stripePriceId === "string" && plan.stripePriceId.startsWith("price_")) {
+    return {
+      price: plan.stripePriceId,
+      quantity: 1,
+    };
+  }
+
+  return {
+    price_data: {
+      currency: "usd",
+      product_data: {
+        name: `${plan.name} Plan`,
+      },
+      unit_amount: plan.price,
+    },
+    quantity: 1,
+  };
+};
+
 // Pricing plans configuration
 export const PLANS = {
   free: { 
@@ -69,19 +101,16 @@ export const createCheckoutSession = async (req, res) => {
     }
 
     // Create Stripe checkout session
+    const frontendBaseUrl = getFrontendBaseUrl();
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
       client_reference_id: userId,
       customer_email: user.email,
-      line_items: [
-        {
-          price: plan.stripePriceId,
-          quantity: 1,
-        },
-      ],
-      success_url: `${process.env.BASE_URL}/payment/success?sessionId={CHECKOUT_SESSION_ID}&planId=${planId}`,
-      cancel_url: `${process.env.BASE_URL}/payment/cancel`,
+      line_items: [buildCheckoutLineItem(plan)],
+      success_url: `${frontendBaseUrl}/payment/success?sessionId={CHECKOUT_SESSION_ID}&planId=${planId}`,
+      cancel_url: `${frontendBaseUrl}/payment/cancel`,
       metadata: {
         userId,
         planId,
