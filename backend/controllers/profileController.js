@@ -101,3 +101,22 @@ export const downloadProfile = async (req, res) => {
 };
 
 
+/* =========================
+   DELETE PROFILE
+========================= */
+
+export const deleteProfile = async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.user.id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "Profile deleted successfully" });
+  } catch (error) {
+    console.error("Delete profile error:", error);
+    res.status(500).json({ message: "Failed to delete profile" });
+  }
+};
+

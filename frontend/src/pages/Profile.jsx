@@ -19,6 +19,7 @@ export default function Profile() {
   const geocoder = useRef(null);
   const [userPlan, setUserPlan] = useState(null);
   const [remainingTime, setRemainingTime] = useState(0);
+  const [deletingProfile, setDeletingProfile] = useState(false);
 
   // Format remaining time as HH:MM:SS
   const formatTime = (ms) => {
@@ -216,6 +217,28 @@ export default function Profile() {
     link.href = url;
     link.download = `profile_${Date.now()}.csv`;
     link.click();
+  };
+
+  const deleteProfile = async () => {
+    const shouldDelete = window.confirm(
+      "Are you sure you want to delete your profile? This action cannot be undone.",
+    );
+
+    if (!shouldDelete) return;
+
+    try {
+      setDeletingProfile(true);
+      await API.delete("/profile");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("userId");
+      navigate("/");
+    } catch (err) {
+      console.error("Profile delete failed", err);
+      alert(err.response?.data?.message || "Failed to delete profile");
+    } finally {
+      setDeletingProfile(false);
+    }
   };
 
   if (loading)
@@ -636,6 +659,27 @@ export default function Profile() {
               </div>
             </div>
           )}
+
+          <div className="danger-section">
+            <div className="profile-card danger-card">
+              <div className="section-header">
+                <h3>Delete Profile</h3>
+              </div>
+
+              <p className="danger-text">
+                Permanently remove your account and delete your data from the
+                database.
+              </p>
+
+              <button
+                className="delete-profile-button"
+                onClick={deleteProfile}
+                disabled={deletingProfile}
+              >
+                {deletingProfile ? "Deleting..." : "Delete Profile"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </Layout>

@@ -7,6 +7,7 @@ import {
   updateAddress,
   uploadProfilePicture,
   downloadProfile,
+  deleteProfile,
 } from "../controllers/profileController.js";
 import { upload } from "../middlewares/uploadMiddleware.js";
 
@@ -24,6 +25,7 @@ router.post(
 );
 
 router.get("/download", authMiddleware, downloadProfile);
+router.delete("/", authMiddleware, deleteProfile);
 
 
 
