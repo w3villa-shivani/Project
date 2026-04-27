@@ -19,6 +19,14 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
   const [remainingTimes, setRemainingTimes] = useState({});
+  const [search, setSearch] = useState("");
+  const [planFilter, setPlanFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
   // Countdown timer effect for all users with active plans
   useEffect(() => {
@@ -49,22 +57,33 @@ export default function Admin() {
     return () => clearInterval(timer);
   }, [users]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/admin/users");
+      const response = await axios.get("/admin/users", {
+        params: {
+          search,
+          plan: planFilter,
+          status: statusFilter,
+          role: roleFilter,
+          page,
+          limit,
+        },
+      });
 
       setUsers(response.data.users);
+      setTotal(response.data.total || 0);
+      setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [search, planFilter, statusFilter, roleFilter, page]);
 
   // update both plan and role if provided
   const updateUser = async (userId, plan, planExpiration, role) => {
@@ -106,7 +125,55 @@ export default function Admin() {
       <div className="admin-container">
         <h1>Admin Panel - User Management</h1>
 
-        <p>{users.length} users found</p>
+        <div className="controls">
+          <input
+            type="text"
+            placeholder="Search by name or email"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+          <select
+            value={planFilter}
+            onChange={(e) => {
+              setPlanFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All Plans</option>
+            <option value="free">Free</option>
+            <option value="silver">Silver</option>
+            <option value="gold">Gold</option>
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+          </select>
+          <select
+            value={roleFilter}
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All Roles</option>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <p>
+          Showing {users.length} of {total} users
+        </p>
 
         <div className="users-table">
           <table>
@@ -122,69 +189,97 @@ export default function Admin() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
-                <tr key={user._id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role || "user"}</td>
-                  <td>
-                    <span
-                      style={{
-                        color: getPlanColor(user.plan, user.planStatus),
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status ${user.planStatus}`}>
-                      {user.planStatus}
-                    </span>
-                  </td>
-                  <td>
-                    {user.planExpiration && user.plan !== "free" ? (
-                      <div className="admin-timer-cell">
-                        <span className="admin-expiration">
-                          {new Date(user.planExpiration).toLocaleString()}
-                        </span>
-                        {remainingTimes[user._id] > 0 && (
-                          <span className="admin-countdown">
-                            {formatTime(
-                              remainingTimes[user._id] || user.remainingTime,
-                            )}
+              {users.length > 0 ? (
+                users.map((user) => (
+                  <tr key={user._id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>{user.role || "user"}</td>
+                    <td>
+                      <span
+                        style={{
+                          color: getPlanColor(user.plan, user.planStatus),
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status ${user.planStatus}`}>
+                        {user.planStatus}
+                      </span>
+                    </td>
+                    <td>
+                      {user.planExpiration && user.plan !== "free" ? (
+                        <div className="admin-timer-cell">
+                          <span className="admin-expiration">
+                            {new Date(user.planExpiration).toLocaleString()}
                           </span>
+                          {remainingTimes[user._id] > 0 && (
+                            <span className="admin-countdown">
+                              {formatTime(
+                                remainingTimes[user._id] || user.remainingTime,
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        "Never"
+                      )}
+                    </td>
+                    <td>
+                      <div className="actions">
+                        {editingUser === user._id ? (
+                          <UserEditor
+                            user={user}
+                            onSave={(plan, expiration, role) =>
+                              updateUser(user._id, plan, expiration, role)
+                            }
+                            onCancel={() => setEditingUser(null)}
+                          />
+                        ) : (
+                          <button
+                            onClick={() => setEditingUser(user._id)}
+                            className="edit-button"
+                            title="Edit plan/role"
+                          >
+                            Edit
+                          </button>
                         )}
                       </div>
-                    ) : (
-                      "Never"
-                    )}
-                  </td>
-                  <td>
-                    <div className="actions">
-                      {editingUser === user._id ? (
-                        <UserEditor
-                          user={user}
-                          onSave={(plan, expiration, role) =>
-                            updateUser(user._id, plan, expiration, role)
-                          }
-                          onCancel={() => setEditingUser(null)}
-                        />
-                      ) : (
-                        <button
-                          onClick={() => setEditingUser(user._id)}
-                          className="edit-button"
-                          title="Edit plan/role"
-                        >
-                          Edit
-                        </button>
-                      )}
-                    </div>
-                  </td>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7">No users found for the current search/filter.</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
+        </div>
+
+        <div className="pagination">
+          <button
+            onClick={() => setPage((currentPage) => Math.max(currentPage - 1, 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setPage((currentPage) =>
+                Math.min(currentPage + 1, totalPages),
+              )
+            }
+            disabled={page >= totalPages}
+          >
+            Next
+          </button>
         </div>
       </div>
     </Layout>

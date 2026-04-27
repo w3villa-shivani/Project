@@ -10,16 +10,46 @@ const router = express.Router();
 router.use(authMiddleware);
 router.use(adminMiddleware);
 
-// Get all users with plan information (admin only)
+// Get users with search, filters, and pagination (admin only)
 router.get("/users", async (req, res) => {
   try {
-    const users = await User.find(
-      {},
-      "name email plan planExpiration planStatus createdAt role",
-    ).sort({ createdAt: -1 });
+    const {
+      search = "",
+      plan = "",
+      status = "",
+      role = "",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const filter = {};
+    const trimmedSearch = search.trim();
+    const numericPage = Math.max(Number(page) || 1, 1);
+    const numericLimit = Math.max(Number(limit) || 10, 1);
+
+    if (trimmedSearch) {
+      const regex = new RegExp(trimmedSearch, "i");
+      filter.$or = [{ name: regex }, { email: regex }];
+    }
+    if (plan) filter.plan = plan;
+    if (status) filter.planStatus = status;
+    if (role) filter.role = role;
+
+    const skip = (numericPage - 1) * numericLimit;
+
+    const [users, total] = await Promise.all([
+      User.find(
+        filter,
+        "name email plan planExpiration planStatus createdAt role",
+      )
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(numericLimit),
+      User.countDocuments(filter),
+    ]);
 
     const now = new Date();
-    const updatedUsers = users.map((user) => {
+    const paginatedUsers = users.map((user) => {
       let remainingTime = 0;
 
       if (
@@ -37,8 +67,11 @@ router.get("/users", async (req, res) => {
     });
 
     res.json({
-      users: updatedUsers,
-      total: updatedUsers.length,
+      users: paginatedUsers,
+      total,
+      page: numericPage,
+      limit: numericLimit,
+      totalPages: Math.max(Math.ceil(total / numericLimit), 1),
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
