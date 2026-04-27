@@ -56,14 +56,10 @@ export default function Admin() {
   const [planFilter, setPlanFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
-  const [total, setTotal] = useState(0);
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchUsers();
-  }, [search, planFilter, statusFilter, roleFilter, page]);
+  }, [search, planFilter, statusFilter, roleFilter]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -74,13 +70,11 @@ export default function Admin() {
           plan: planFilter,
           status: statusFilter,
           role: roleFilter,
-          page,
-          limit,
+          limit: "all",
         },
       });
 
       setUsers(response.data.users);
-      setTotal(response.data.total);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
@@ -135,14 +129,12 @@ export default function Admin() {
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-              setPage(1);
             }}
           />
           <select
             value={planFilter}
             onChange={(e) => {
               setPlanFilter(e.target.value);
-              setPage(1);
             }}
           >
             <option value="">All Plans</option>
@@ -154,7 +146,6 @@ export default function Admin() {
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
-              setPage(1);
             }}
           >
             <option value="">All Status</option>
@@ -165,7 +156,6 @@ export default function Admin() {
             value={roleFilter}
             onChange={(e) => {
               setRoleFilter(e.target.value);
-              setPage(1);
             }}
           >
             <option value="">All Roles</option>
@@ -173,6 +163,8 @@ export default function Admin() {
             <option value="admin">Admin</option>
           </select>
         </div>
+
+        <p>{users.length} users found</p>
 
         <div className="users-table">
           <table>
@@ -336,25 +328,6 @@ export default function Admin() {
             </div>
           </div>
         )}
-
-        {/* pagination controls */}
-        <div className="pagination">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Previous
-          </button>
-          <span>
-            Page {page} of {Math.ceil(total / limit) || 1}
-          </span>
-          <button
-            onClick={() => setPage((p) => p + 1)}
-            disabled={page * limit >= total}
-          >
-            Next
-          </button>
-        </div>
       </div>
     </Layout>
   );

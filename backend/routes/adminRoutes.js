@@ -16,6 +16,9 @@ router.get("/users", async (req, res) => {
   try {
     const { search, plan, status, role, page = 1, limit = 10 } = req.query;
     const filter = {};
+    const wantsAllUsers = limit === "all";
+    const numericLimit = wantsAllUsers ? 0 : Math.max(Number(limit) || 10, 1);
+    const numericPage = Math.max(Number(page) || 1, 1);
 
     if (search) {
       const regex = new RegExp(search, "i");
@@ -28,13 +31,19 @@ router.get("/users", async (req, res) => {
     // Exclude deleted users
     filter.isDeleted = false;
 
-    const skip = (Number(page) - 1) * Number(limit);
+    const skip = wantsAllUsers ? 0 : (numericPage - 1) * numericLimit;
+
+    const userQuery = User.find(
+      filter,
+      "name email plan planExpiration planStatus createdAt role",
+    ).sort({ createdAt: -1 });
+
+    if (!wantsAllUsers) {
+      userQuery.skip(skip).limit(numericLimit);
+    }
 
     const [users, total] = await Promise.all([
-      User.find(filter, "name email plan planExpiration planStatus createdAt role")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(Number(limit)),
+      userQuery,
       User.countDocuments(filter),
     ]);
 
@@ -60,7 +69,12 @@ router.get("/users", async (req, res) => {
       };
     });
 
-    res.json({ users: updatedUsers, total, page: Number(page), limit: Number(limit) });
+    res.json({
+      users: updatedUsers,
+      total,
+      page: numericPage,
+      limit: wantsAllUsers ? total : numericLimit,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
