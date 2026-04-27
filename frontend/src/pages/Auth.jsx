@@ -10,6 +10,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -21,23 +22,24 @@ export default function Auth() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (isLogin) {
-      const res = await API.post("/auth/login", {
-        email: form.email,
-        password: form.password,
-      });
+    try {
+      if (isLogin) {
+        const res = await API.post("/auth/login", {
+          email: form.email,
+          password: form.password,
+        });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      if (res.data.user.role === "admin") {
-        navigate("/admin");
+        if (res.data.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/home");
+        }
       } else {
-        navigate("/home");
-      }
-    } else {
-      try {
         const signupData = {
           name: form.name,
           email: form.email,
@@ -52,17 +54,13 @@ export default function Auth() {
 
         alert(res.data.message);
         setIsLogin(true);
-      } catch (err) {
-        if (err.response?.status === 409) {
-          alert(
-            "An account with this email already exists. Please login instead.",
-          );
-          setIsLogin(true);
-        } else {
-          alert(
-            err.response?.data?.message || "Signup failed. Please try again.",
-          );
-        }
+      }
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError(err.response?.data?.message || "An account with this email already exists.");
+        setIsLogin(true);
+      } else {
+        setError(err.response?.data?.message || "An error occurred. Please try again.");
       }
     }
   };
@@ -92,6 +90,8 @@ export default function Auth() {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {error && <div className="error-message">{error}</div>}
+
           {!isLogin && (
             <input
               placeholder="Full Name"
@@ -105,7 +105,10 @@ export default function Auth() {
             type="email"
             placeholder="Email address"
             value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, email: e.target.value });
+              setError("");
+            }}
             required
           />
 
@@ -114,7 +117,10 @@ export default function Auth() {
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={(e) => {
+                setForm({ ...form, password: e.target.value });
+                setError("");
+              }}
               required
             />
             <button
@@ -194,9 +200,9 @@ export default function Auth() {
           </button>
         </div>
 
-        <p className="auth-toggle">
+          <p className="auth-toggle">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <span onClick={() => setIsLogin(!isLogin)}>
+          <span onClick={() => { setIsLogin(!isLogin); setError(""); }}>
             {isLogin ? "Sign up" : "Sign in"}
           </span>
         </p>

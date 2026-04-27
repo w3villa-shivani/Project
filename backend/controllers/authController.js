@@ -11,9 +11,13 @@ export const signup = async (req, res) => {
   try {
     const { name, email, password, adminSecret } = req.body;
 
+    if (!name) return res.status(400).json({ message: "Name required" });
+    if (!email) return res.status(400).json({ message: "Email required" });
+    if (!password) return res.status(400).json({ message: "Password required" });
+
     const userExists = await User.findOne({ email });
     if (userExists)
-      return res.status(409).json({ message: "User already exists" });
+      return res.status(409).json({ message: "Email already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -55,11 +59,14 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email) return res.status(400).json({ message: "Email required" });
+    if (!password) return res.status(400).json({ message: "Password required" });
+
     console.log('Login attempt for email:', email);
 
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(401).json({ message: "User does not exist" });
+      return res.status(401).json({ message: "Email does not exist" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
