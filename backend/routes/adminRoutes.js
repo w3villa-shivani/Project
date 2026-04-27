@@ -11,69 +11,34 @@ router.use(authMiddleware);
 router.use(adminMiddleware);
 
 // Get all users with plan information (admin only)
-// supports search, filter (plan/status) and pagination via query params
 router.get("/users", async (req, res) => {
   try {
-    const { search, plan, status, role, page = 1, limit = 10 } = req.query;
-    const filter = {};
-    const wantsAllUsers = limit === "all";
-    const numericLimit = wantsAllUsers ? 0 : Math.max(Number(limit) || 10, 1);
-    const numericPage = Math.max(Number(page) || 1, 1);
-
-    if (search) {
-      const regex = new RegExp(search, "i");
-      filter.$or = [{ name: regex }, { email: regex }];
-    }
-    if (plan) filter.plan = plan;
-    if (status) filter.planStatus = status;
-    if (role) filter.role = role;
-
-    // Exclude deleted users
-    filter.isDeleted = false;
-
-    const skip = wantsAllUsers ? 0 : (numericPage - 1) * numericLimit;
-
-    const userQuery = User.find(
-      filter,
+    const users = await User.find(
+      {},
       "name email plan planExpiration planStatus createdAt role",
     ).sort({ createdAt: -1 });
 
-    if (!wantsAllUsers) {
-      userQuery.skip(skip).limit(numericLimit);
-    }
-
-    const [users, total] = await Promise.all([
-      userQuery,
-      User.countDocuments(filter),
-    ]);
-
-    // Check for expired plans
     const now = new Date();
-    const updatedUsers = users.map(user => {
+    const updatedUsers = users.map((user) => {
       let remainingTime = 0;
-      
-      if (user.planExpiration && new Date(user.planExpiration) < now && user.plan !== "free") {
-        // Plan has expired, reset to free
-        user.plan = "free";
-        user.planExpiration = null;
-        user.planStatus = "active";
-        user.save();
-      } else if (user.planExpiration && user.plan !== "free") {
-        // Calculate remaining time in milliseconds
+
+      if (
+        user.planExpiration &&
+        new Date(user.planExpiration) >= now &&
+        user.plan !== "free"
+      ) {
         remainingTime = user.planExpiration.getTime() - now.getTime();
       }
-      
+
       return {
         ...user.toObject(),
-        remainingTime: remainingTime > 0 ? remainingTime : 0
+        remainingTime: remainingTime > 0 ? remainingTime : 0,
       };
     });
 
     res.json({
       users: updatedUsers,
-      total,
-      page: numericPage,
-      limit: wantsAllUsers ? total : numericLimit,
+      total: updatedUsers.length,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -18,8 +18,6 @@ export default function Admin() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
-  const [deletingUser, setDeletingUser] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
   const [remainingTimes, setRemainingTimes] = useState({});
 
   // Countdown timer effect for all users with active plans
@@ -51,28 +49,14 @@ export default function Admin() {
     return () => clearInterval(timer);
   }, [users]);
 
-  // filters/pagination/search state
-  const [search, setSearch] = useState("");
-  const [planFilter, setPlanFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchUsers();
-  }, [search, planFilter, statusFilter, roleFilter]);
+  }, []);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/admin/users", {
-        params: {
-          search,
-          plan: planFilter,
-          status: statusFilter,
-          role: roleFilter,
-          limit: "all",
-        },
-      });
+      const response = await axios.get("/admin/users");
 
       setUsers(response.data.users);
     } catch (error) {
@@ -122,48 +106,6 @@ export default function Admin() {
       <div className="admin-container">
         <h1>Admin Panel - User Management</h1>
 
-        <div className="controls">
-          <input
-            type="text"
-            placeholder="Search by name or email"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-            }}
-          />
-          <select
-            value={planFilter}
-            onChange={(e) => {
-              setPlanFilter(e.target.value);
-            }}
-          >
-            <option value="">All Plans</option>
-            <option value="free">Free</option>
-            <option value="silver">Silver</option>
-            <option value="gold">Gold</option>
-          </select>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-            }}
-          >
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-          </select>
-          <select
-            value={roleFilter}
-            onChange={(e) => {
-              setRoleFilter(e.target.value);
-            }}
-          >
-            <option value="">All Roles</option>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-
         <p>{users.length} users found</p>
 
         <div className="users-table">
@@ -176,7 +118,7 @@ export default function Admin() {
                 <th>Plan</th>
                 <th>Status</th>
                 <th>Expiration</th>
-                <th>Actions</th>
+                <th>Edit</th>
               </tr>
             </thead>
             <tbody>
@@ -229,40 +171,13 @@ export default function Admin() {
                           onCancel={() => setEditingUser(null)}
                         />
                       ) : (
-                        <>
-                          <button
-                            onClick={() => setEditingUser(user._id)}
-                            className="edit-button"
-                            title="Edit plan/role"
-                          >
-                            Edit
-                          </button>
-                          {user.role !== "admin" && (
-                            <button
-                              onClick={() => {
-                                setDeletingUser(user);
-                                setDeletingId(user._id);
-                              }}
-                              className="delete-button"
-                              title="Delete user profile"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1 -2 2H7a2 2 0 0 1 -2 -2V6m3 0V4a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"></path>
-                              </svg>
-                            </button>
-                          )}
-                        </>
+                        <button
+                          onClick={() => setEditingUser(user._id)}
+                          className="edit-button"
+                          title="Edit plan/role"
+                        >
+                          Edit
+                        </button>
                       )}
                     </div>
                   </td>
@@ -271,63 +186,6 @@ export default function Admin() {
             </tbody>
           </table>
         </div>
-
-        {/* Admin Delete Confirmation Modal */}
-        {deletingUser && (
-          <div className="modal-overlay">
-            <div className="delete-modal">
-              <div className="modal-header">
-                <h3>Confirm User Deletion</h3>
-              </div>
-              <div className="modal-body">
-                <p>
-                  Delete <strong>{deletingUser.name}</strong> (
-                  {deletingUser.email})?
-                </p>
-                <ul>
-                  <li>
-                    This user is <strong>{deletingUser.role}</strong>
-                  </li>
-                  <li>
-                    Plan: <strong>{deletingUser.plan?.toUpperCase()}</strong>
-                  </li>
-                  <li>This action cannot be undone</li>
-                </ul>
-              </div>
-              <div className="modal-actions">
-                <button
-                  className="cancel-button"
-                  onClick={() => {
-                    setDeletingUser(null);
-                    setDeletingId(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="confirm-delete-button"
-                  onClick={async () => {
-                    try {
-                      await axios.delete(`/admin/user/${deletingId}`);
-                      fetchUsers(); // Refresh list
-                    } catch (err) {
-                      console.error("Delete failed", err);
-                      alert(
-                        "Delete failed: " +
-                          (err.response?.data?.error || err.message),
-                      );
-                    } finally {
-                      setDeletingUser(null);
-                      setDeletingId(null);
-                    }
-                  }}
-                >
-                  Delete User
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );
